@@ -1,15 +1,22 @@
 const axios = require("axios");
 const http = require("http");
-const pythonServerAxios = async () => {
-  const res = await axios({
-    url: "http://localhost:8080",
-    method: "GET",
-    params: {
-      ping: "pong",
-      bing: "bong",
-    },
-  });
-  return res.data;
+const pythonServiceAxios = async (callback) => {
+  try {
+    const res = await axios({
+      url: "http://localhost:8080",
+      method: "GET",
+      params: {
+        ping: "pong",
+        bing: "bong",
+      },
+    });
+    callback(res.data);
+  } catch (error) {
+    console.log(
+      "AXIOS ERROR: ",
+      error.response?.data ? error.response?.data : error.message
+    );
+  }
 };
 
 const pythonServiceNative = (callback) => {
@@ -27,14 +34,13 @@ const pythonServiceNative = (callback) => {
   });
 
   req.on("error", (error) => {
-    console.error(error);
+    console.error("NATIVE ERROR: ", error.message);
   });
 
   req.end();
 };
 
-const pythonTesterAxios = async () => {
-  const myRes = await pythonServerAxios();
+const pythonTesterAxios = (myRes) => {
   console.log("AXIOS: ", myRes);
 };
 
@@ -42,5 +48,6 @@ const pythonTesterNative = (myRes) => {
   console.log("NATIVE: ", myRes);
 };
 
-pythonTesterAxios();
-pythonServiceNative(res => pythonTesterNative(res))
+pythonServiceAxios((res) => pythonTesterAxios(res));
+
+pythonServiceNative((res) => pythonTesterNative(res));
